@@ -21,12 +21,19 @@ async def on_message(message):
         return
 
     if message.content.startswith('$vote'):
-        await message.channel.send('cs_outpost : Vote for the map on a scale of 1️⃣ - 5️⃣!')
+        if (len(message.content.split(' ')) < 2):
+            await message.channel.send('$vote [map_id], then Vote for the map on a scale of 1️⃣ - 5️⃣!')
+        else:
+            await message.add_reaction("1️⃣")
+            await message.add_reaction("2️⃣")
+            await message.add_reaction("3️⃣")
+            await message.add_reaction("4️⃣")
+            await message.add_reaction("5️⃣")
 
 @client.event
 async def on_reaction_add(reaction, user):
-    if reaction.message.author == client.user:
-        map_name = reaction.message.content.split(':')[0]
+    if reaction.message.author != client.user and user != client.user and reaction.message.content.startswith('$vote'):
+        map_name = reaction.message.content.split(' ')[1]
         rating = 0
         if (reaction.emoji == "1️⃣"): rating = 1
         elif (reaction.emoji == "2️⃣"): rating = 2
@@ -37,7 +44,7 @@ async def on_reaction_add(reaction, user):
             print(user.name + " added " + str(rating) + " to map " + map_name)
             
             url = "http://stats.geekfestclan.com/api/stats/rating/"
-            response = requests.post(url, json = {"map_id": 234, "user_id": 18, "rating": rating})
+            response = requests.post(url, json = {"map_id": map_name, "user_id": 18, "rating": rating})
             print('api response:  ',response)
             print('api response text:  ',response.text)
 # @client.event
