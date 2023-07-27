@@ -30,11 +30,14 @@ async def on_message(message):
             # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
             response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1})
             if response.content and response.status_code == 200:
-                await message.add_reaction("1️⃣")
-                await message.add_reaction("2️⃣")
-                await message.add_reaction("3️⃣")
-                await message.add_reaction("4️⃣")
-                await message.add_reaction("5️⃣")
+                try:
+                    await message.add_reaction("1️⃣")
+                    await message.add_reaction("2️⃣")
+                    await message.add_reaction("3️⃣")
+                    await message.add_reaction("4️⃣")
+                    await message.add_reaction("5️⃣")
+                except:
+                    print("error adding reactions")
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
 @client.event
@@ -95,8 +98,8 @@ async def on_reaction_add(reaction, user):
             # url = "http://stats.geekfestclan.com/api/stats/botrating/"
             response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating})
             print('api response text:  ',response.text)
-        # If response invalid, send error message
-        if response.content and response.status_code != 201: 
-            await reaction.message.channel.send('Map "' + map_name + ' or Geek "' + user.name + '" not found.')
+            # If response invalid, send error message
+            if response.content and response.status_code != 201: 
+                await reaction.message.channel.send('Map "' + map_name + ' or Geek "' + user.name + '" not found.')
 
 client.run(os.getenv('TOKEN'))
