@@ -22,14 +22,21 @@ async def on_message(message):
 
     if message.content.startswith('$vote'):
         if (len(message.content.split(' ')) < 2):
-            await message.channel.send('$vote [map_id], then Vote for the map on a scale of 1️⃣ - 5️⃣!')
+            await message.channel.send('$vote [map_name], then Vote for the map on a scale of 1️⃣ - 5️⃣!')
         else:
-            await message.add_reaction("1️⃣")
-            await message.add_reaction("2️⃣")
-            await message.add_reaction("3️⃣")
-            await message.add_reaction("4️⃣")
-            await message.add_reaction("5️⃣")
-
+            map_name = message.content.split(' ')[1]
+            url = "http://192.168.0.209:8000/api/stats/botrating/"
+            # url = "http://stats.geekfestclan.com/api/stats/botrating/"
+            # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1})
+            if response.content and response.status_code == 200:
+                await message.add_reaction("1️⃣")
+                await message.add_reaction("2️⃣")
+                await message.add_reaction("3️⃣")
+                await message.add_reaction("4️⃣")
+                await message.add_reaction("5️⃣")
+            else:
+                await message.channel.send('Map "' + map_name + '" not found.')
 @client.event
 async def on_reaction_add(reaction, user):
     if reaction.message.author != client.user and user != client.user and reaction.message.content.startswith('$vote'):
@@ -43,25 +50,14 @@ async def on_reaction_add(reaction, user):
         if rating > 0:
             print(user.name + " added " + str(rating) + " to map " + map_name)
             
-            url = "http://stats.geekfestclan.com/api/stats/rating/"
-            response = requests.post(url, json = {"map_id": map_name, "user_id": 18, "rating": rating})
+            # url = "http://stats.geekfestclan.com/api/stats/rating/"
+            url = "http://192.168.0.209:8000/api/stats/botrating/"
+            # url = "http://stats.geekfestclan.com/api/stats/botrating/"
+            response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating})
             print('api response:  ',response)
             print('api response text:  ',response.text)
-# @client.event
-# async def on_reaction_remove(reaction, user):
-#     if reaction.message.author == client.user:
-#         map_name = reaction.message.content.split(':')[0]
-#         if (reaction.emoji == "1️⃣"):
-#             print(user.name + " removed 1 from " + map_name)
-#         elif (reaction.emoji == "2️⃣"):
-#             print(user.name + " removed 2 from " + map_name)
-#         elif (reaction.emoji == "3️⃣"):
-#             print(user.name + " removed 3 from " + map_name)
-#         elif (reaction.emoji == "4️⃣"):
-#             print(user.name + " removed 4 from " + map_name)
-#         elif (reaction.emoji == "5️⃣"):
-#             print(user.name + " removed 5 from " + map_name)
-#         else:
-#             print("invalid reaction")
+        # If response invalid, send error message
+        if response.content and response.status_code != 201: 
+            await reaction.message.channel.send('Map "' + map_name + ' or Geek "' + user.name + '" not found.')
 
 client.run(os.getenv('TOKEN'))
