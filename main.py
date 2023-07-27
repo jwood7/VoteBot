@@ -42,11 +42,51 @@ async def on_reaction_add(reaction, user):
     if reaction.message.author != client.user and user != client.user and reaction.message.content.startswith('$vote'):
         map_name = reaction.message.content.split(' ')[1]
         rating = 0
-        if (reaction.emoji == "1️⃣"): rating = 1
-        elif (reaction.emoji == "2️⃣"): rating = 2
-        elif (reaction.emoji == "3️⃣"): rating = 3
-        elif (reaction.emoji == "4️⃣"): rating = 4
-        elif (reaction.emoji == "5️⃣"): rating = 5
+        if (reaction.emoji == "1️⃣"): 
+            rating = 1
+            try:
+                await reaction.message.remove_reaction("2️⃣", user)
+                await reaction.message.remove_reaction("3️⃣", user)
+                await reaction.message.remove_reaction("4️⃣", user)
+                await reaction.message.remove_reaction("5️⃣", user)
+            except:
+                print("error removing reactions")
+        elif (reaction.emoji == "2️⃣"): 
+            rating = 2
+            try:
+                await reaction.message.remove_reaction("1️⃣", user)
+                await reaction.message.remove_reaction("3️⃣", user)
+                await reaction.message.remove_reaction("4️⃣", user)
+                await reaction.message.remove_reaction("5️⃣", user)
+            except:
+                print("error removing reactions")
+        elif (reaction.emoji == "3️⃣"): 
+            rating = 3
+            try:
+                await reaction.message.remove_reaction("1️⃣", user)
+                await reaction.message.remove_reaction("2️⃣", user)
+                await reaction.message.remove_reaction("4️⃣", user)
+                await reaction.message.remove_reaction("5️⃣", user)
+            except:
+                print("error removing reactions")
+        elif (reaction.emoji == "4️⃣"): 
+            rating = 4
+            try:
+                await reaction.message.remove_reaction("1️⃣", user)
+                await reaction.message.remove_reaction("2️⃣", user)
+                await reaction.message.remove_reaction("3️⃣", user)
+                await reaction.message.remove_reaction("5️⃣", user)
+            except:
+                print("error removing reactions")
+        elif (reaction.emoji == "5️⃣"): 
+            rating = 5
+            try:
+                await reaction.message.remove_reaction("1️⃣", user)
+                await reaction.message.remove_reaction("2️⃣", user)
+                await reaction.message.remove_reaction("3️⃣", user)
+                await reaction.message.remove_reaction("4️⃣", user)
+            except:
+                print("error removing reactions")
         if rating > 0:
             print(user.name + " added " + str(rating) + " to map " + map_name)
             
@@ -54,7 +94,6 @@ async def on_reaction_add(reaction, user):
             url = "http://192.168.0.209:8000/api/stats/botrating/"
             # url = "http://stats.geekfestclan.com/api/stats/botrating/"
             response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating})
-            print('api response:  ',response)
             print('api response text:  ',response.text)
         # If response invalid, send error message
         if response.content and response.status_code != 201: 
