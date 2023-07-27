@@ -2,6 +2,7 @@ import discord
 import os
 from dotenv import load_dotenv
 import requests
+import json
 
 load_dotenv()
 
@@ -19,8 +20,14 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
-    if message.content.startswith('$vote'):
+    if message.content.startswith('$last_maps'):
+        url = "http://192.168.0.209:8000/api/stats/botrating/"
+        # url = "http://stats.geekfestclan.com/api/stats/botrating/"
+        # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
+        response = requests.post(url, json = {"map": "last_maps", "user": message.author.name, "rating": -2, "key": os.getenv('KEY')})
+        maps = json.loads(response.text)
+        await message.channel.send('The last 3 maps are: '+ maps[0]["map"] + ', '+ maps[1]["map"] + ', and ' + maps[2]["map"] +'\n$vote [map_name], then Vote for the map on a scale of 1️⃣ - 5️⃣!')
+    elif message.content.startswith('$vote'):
         if (len(message.content.split(' ')) < 2):
             await message.channel.send('$vote [map_name], then Vote for the map on a scale of 1️⃣ - 5️⃣!')
         else:
@@ -28,22 +35,46 @@ async def on_message(message):
             url = "http://192.168.0.209:8000/api/stats/botrating/"
             # url = "http://stats.geekfestclan.com/api/stats/botrating/"
             # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
-            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1})
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
+            maps = json.loads(response.text)
             if response.content and response.status_code == 200:
-                try:
-                    await message.add_reaction("1️⃣")
-                    await message.add_reaction("2️⃣")
-                    await message.add_reaction("3️⃣")
-                    await message.add_reaction("4️⃣")
-                    await message.add_reaction("5️⃣")
-                except:
-                    print("error adding reactions")
+                if len(maps) == 1:
+                    try:
+                        await message.delete()
+                    except:
+                        print("error deleting message")
+                    # vote_msg = await message.channel.send('Vote on ' + maps[0]["map"])
+                    embed = discord.Embed(title = 'Vote on ' + maps[0]["map"], 
+                                          description = 'Vote for the map on a scale of 1️⃣ - 5️⃣!', 
+                                          color = 0x00ff00,
+                                          #url = 'http://stats.geekfestclan.com/stats/Map2?mid=' + str(maps[0]["idmap"]))
+                                          url = 'http://192.168.0.209:8000/api/stats/Map2?mid=' + str(maps[0]["idmap"]))
+                    if (maps[0]["description"]):
+                        embed.add_field(name = 'Map description', value = maps[0]["description"], inline = False)
+                    embed.set_image(url = "http://stats.geekfestclan.com/media/" + maps[0]["thumbnail"])
+                    vote_msg = await message.channel.send(embed = embed)
+                    try:
+                        await vote_msg.add_reaction("1️⃣")
+                        await vote_msg.add_reaction("2️⃣")
+                        await vote_msg.add_reaction("3️⃣")
+                        await vote_msg.add_reaction("4️⃣")
+                        await vote_msg.add_reaction("5️⃣")
+                    except:
+                        print("error adding reactions")
+                elif len(maps) > 1:
+                    map_list = ''
+                    for map in maps:
+                        map_list = map_list + map["map"] + ', '
+                    await message.channel.send('Found the following maps: ' + map_list[:-2] + '\nPlease use $vote [map_name] with the exact map name.')
+                else:
+                    await message.channel.send('Map "' + map_name + '" not found.')
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
 @client.event
 async def on_reaction_add(reaction, user):
-    if reaction.message.author != client.user and user != client.user and reaction.message.content.startswith('$vote'):
-        map_name = reaction.message.content.split(' ')[1]
+    # this will need to change to only check reactions to the bot's messages
+    if reaction.message.author == client.user and user != client.user and reaction.message.embeds:
+        map_name = reaction.message.embeds[0].title.split(' ')[2]
         rating = 0
         if (reaction.emoji == "1️⃣"): 
             rating = 1
@@ -96,7 +127,7 @@ async def on_reaction_add(reaction, user):
             # url = "http://stats.geekfestclan.com/api/stats/rating/"
             url = "http://192.168.0.209:8000/api/stats/botrating/"
             # url = "http://stats.geekfestclan.com/api/stats/botrating/"
-            response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating})
+            response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating, "key": os.getenv('KEY')})
             print('api response text:  ',response.text)
             # If response invalid, send error message
             if response.content and response.status_code != 201: 
