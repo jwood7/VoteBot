@@ -161,6 +161,6 @@ async def on_reaction_add(reaction, user):
             response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating, "key": os.getenv('KEY')})
             print(user.name + " added " + str(rating) + " to map " + map_name)
             if response.content and response.status_code != 201: 
-                await reaction.message.channel.send('Map "' + map_name + ' or Geek "' + user.name + '" not found.')
+                await reaction.message.channel.send('Map "' + map_name + '" or Geek "' + user.name + '" not found.')
 
 client.run(os.getenv('TOKEN'))
