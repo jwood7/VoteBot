@@ -44,6 +44,25 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    if message.content.startswith('$check'): #check score of map 
+        if (len(message.content.split(' ')) < 2):
+            await message.channel.send("$check [map_name] to check a map's rating")
+        else:
+            map_name = message.content.split(' ')[1]
+            # url = "http://192.168.0.209:8000/api/stats/botrating/"
+            url = "http://stats.geekfestclan.com/api/stats/botrating/"
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -3, "key": os.getenv('KEY')})
+            maps = json.loads(response.text)
+            if response.content and response.status_code == 200:
+                if len(maps) > 0:
+                    try:
+                        await message.channel.send(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]/(maps[0]["vote_count"]* 5 )* 100) + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
+                    except:
+                        print("error sending message")
+                else:
+                    await message.channel.send('Map "' + map_name + '" not found.')
+            else:
+                await message.channel.send('Map "' + map_name + '" not found.')
     if message.content.startswith('$last_maps'): #send back last three maps played
         # url = "http://192.168.0.209:8000/api/stats/botrating/"
         url = "http://stats.geekfestclan.com/api/stats/botrating/"
@@ -64,6 +83,7 @@ async def on_message(message):
             await message.channel.send('$lookup [map_name] to search for a map name')
         else:
             map_name = message.content.split(' ')[1]
+            # url = "http://192.168.0.209:8000/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
             response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
             maps = json.loads(response.text)
@@ -80,7 +100,7 @@ async def on_message(message):
 
     elif message.content.startswith('$vote'): #vote for map
         if (len(message.content.split(' ')) < 2):
-            await message.channel.send('$vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n$last_maps to see the last 3 maps.\n$lookup [map_name] to search for a map name')
+            await message.channel.send("$vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n$last_maps to see the last 3 maps.\n$lookup [map_name] to search for a map name\n$check [map_name] to check a map's rating")
         else:
             map_name = message.content.split(' ')[1]
             # url = "http://192.168.0.209:8000/api/stats/botrating/"
@@ -161,6 +181,7 @@ async def on_reaction_add(reaction, user):
             response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating, "key": os.getenv('KEY')})
             print(user.name + " added " + str(rating) + " to map " + map_name)
             if response.content and response.status_code != 201: 
+                print (response.text)
                 await reaction.message.channel.send('Map "' + map_name + '" or Geek "' + user.name + '" not found.')
 
 client.run(os.getenv('TOKEN'))
