@@ -43,8 +43,16 @@ async def embed_map(map_dict, channel): #used to embed and send map info
     description="Check the rating of a map",
     guild=discord.Object(id=533307442189172737)
 )
-async def check(interaction):
-    await interaction.response.send_message("Check the rating of a map test", ephemeral=True)
+# async def check(interaction):
+#     await interaction.response.send_message("Check the rating of a map test", ephemeral=True)
+@tree.command(
+    name="gf_sync",
+    description="Syncs geekfest commands with discord autocomplete",
+    guild=discord.Object(id=533307442189172737)
+)
+async def gf_sync(interaction):
+    await interaction.response.send_message("Commands synced")
+
 
 
 @client.event
@@ -133,6 +141,8 @@ async def on_message(message):
                     await message.channel.send('Map "' + map_name + '" not found.')
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
+    elif message.content.startswith('$gf_sync') or message.content.startswith('/gf_sync'):
+        await tree.sync(guild=discord.Object(id=533307442189172737))
 
 @client.event
 async def on_reaction_add(reaction, user):
