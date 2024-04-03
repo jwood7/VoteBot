@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 import os
 from dotenv import load_dotenv
 import requests
@@ -11,6 +12,7 @@ intents.message_content = True
 intents.reactions = True
 intents.members = True
 client = discord.Client(intents=intents)
+tree = app_commands.CommandTree(client)
 
 async def embed_map(map_dict, channel): #used to embed and send map info
     embed = discord.Embed(title = 'Vote on ' + map_dict["map"], 
@@ -36,6 +38,15 @@ async def embed_map(map_dict, channel): #used to embed and send map info
     except:
         print("error sending embed")
 
+@tree.command(
+    name="check",
+    description="Check the rating of a map",
+    guild=discord.Object(id=533307442189172737)
+)
+async def check(interaction):
+    await interaction.response.send_message("Check the rating of a map test", ephemeral=True)
+
+
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -56,7 +67,7 @@ async def on_message(message):
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
                     try:
-                        await message.channel.send(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]//(maps[0]["vote_count"]* 5 )* 100) + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
+                        await message.channel.send(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]/(maps[0]["vote_count"]* 5 )* 100)[:6] + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
                     except:
                         print("error sending message")
                 else:
