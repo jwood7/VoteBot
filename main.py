@@ -37,21 +37,100 @@ async def embed_map(map_dict, channel): #used to embed and send map info
             print("error adding reactions")
     except:
         print("error sending embed")
-
 @tree.command(
     name="check",
     description="Check the rating of a map",
     guild=discord.Object(id=533307442189172737)
 )
-# async def check(interaction):
-#     await interaction.response.send_message("Check the rating of a map test", ephemeral=True)
+@app_commands.describe(map_name="Name of the map being checked")
+async def check(interaction, map_name: str):
+    url = "http://stats.geekfestclan.com/api/stats/botrating/"
+    response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -3, "key": os.getenv('KEY')})
+    maps = json.loads(response.text)
+    if response.content and response.status_code == 200:
+        if len(maps) > 0:
+            try:
+                await interaction.response.send_message(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]/(maps[0]["vote_count"]* 5 )* 100)[:6] + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
+            except:
+                print("error sending message")
+        else:
+            await interaction.response.send_message('Map "' + map_name + '" not found.')
+    else:
+        await interaction.response.send_message('Map "' + map_name + '" not found.')
+@tree.command(
+    name="last_maps",
+    description="Check the last three maps played",
+    guild=discord.Object(id=533307442189172737)
+)
+async def last_maps(interaction):
+    url = "http://stats.geekfestclan.com/api/stats/botrating/"
+    response = requests.post(url, json = {"map": "last_maps", "user": interaction.user.name, "rating": -2, "key": os.getenv('KEY')})
+    maps = json.loads(response.text)
+    await interaction.response.send_message("Sending last three maps", ephemeral=True)
+    for i in range(len(maps)-1,-1,-1):
+        try:
+            await embed_map(maps[i], interaction.channel)
+        except:
+            print("error embedding map" + " " + str(i) + " " + maps[i]["map"])
+    # await interaction.response.send_message("Last three maps sent", ephemeral=True)
+@tree.command(
+    name="lookup",
+    description="Search for a map",
+    guild=discord.Object(id=533307442189172737)
+)
+@app_commands.describe(map_name="Name of the map being searched")
+async def lookup(interaction, map_name: str):
+    url = "http://stats.geekfestclan.com/api/stats/botrating/"
+    response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
+    maps = json.loads(response.text)
+    if response.content and response.status_code == 200:
+        if len(maps) > 0:
+            map_list = ''
+            for map in maps:
+                map_list = map_list + map["map"] + ', '
+            await interaction.response.send_message('Found the following maps: ' + map_list[:-2] + '\n')
+        else:
+            await interaction.response.send_message('Map "' + map_name + '" not found.')
+    else:
+        await interaction.response.send_message('Map "' + map_name + '" not found.')
+
+@tree.command(
+    name="vote",
+    description="Vote for a map",
+    guild=discord.Object(id=533307442189172737)
+)
+@app_commands.describe(map_name="Name of the map being voted on")
+async def vote(interaction, map_name:str='' ):
+    if map_name == '':
+        await interaction.response.send_message("/vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n/last_maps to see the last 3 maps.\n/lookup [map_name] to search for a map name\n/check [map_name] to check a map's rating")
+    else:
+        url = "http://stats.geekfestclan.com/api/stats/botrating/"
+        response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
+        maps = json.loads(response.text)
+        if response.content and response.status_code == 200:
+            if len(maps) > 0:
+                try:
+                    shortest_map = maps[0]
+                    for map in maps:
+                        if len(map["map"]) < len(shortest_map["map"]):
+                            shortest_map = map
+                    await embed_map(shortest_map, interaction.channel)
+                    await interaction.response.send_message("Vote in the below embed:", ephemeral=True)
+                except:
+                    print("error embedding map" + maps[0]["map"])
+            else:
+                await interaction.response.send_message('Map "' + map_name + '" not found.')
+        else:
+            await interaction.response.send_message('Map "' + map_name + '" not found.')
+
 @tree.command(
     name="gf_sync",
     description="Syncs geekfest commands with discord autocomplete",
     guild=discord.Object(id=533307442189172737)
 )
 async def gf_sync(interaction):
-    await interaction.response.send_message("Commands synced")
+    await tree.sync(guild=discord.Object(id=533307442189172737))
+    await interaction.response.send_message("Commands synced", ephemeral=True)
 
 
 
@@ -59,11 +138,12 @@ async def gf_sync(interaction):
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
+# for supporting $ commands 
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
-    if message.content.startswith('$check') or message.content.startswith('/check'): #check score of map 
+    if message.content.startswith('$check'): #check score of map 
         if (len(message.content.split(' ')) < 2):
             await message.channel.send("$check [map_name] to check a map's rating")
         else:
@@ -82,7 +162,7 @@ async def on_message(message):
                     await message.channel.send('Map "' + map_name + '" not found.')
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
-    if message.content.startswith('$last_maps') or message.content.startswith('/last_maps'): #send back last three maps played
+    if message.content.startswith('$last_maps'): #send back last three maps played
         # url = "http://192.168.0.209:8000/api/stats/botrating/"
         url = "http://stats.geekfestclan.com/api/stats/botrating/"
         response = requests.post(url, json = {"map": "last_maps", "user": message.author.name, "rating": -2, "key": os.getenv('KEY')})
@@ -117,7 +197,7 @@ async def on_message(message):
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
 
-    elif message.content.startswith('$vote') or message.content.startswith('/vote'): #vote for map
+    elif message.content.startswith('$vote'): #vote for map
         if (len(message.content.split(' ')) < 2):
             await message.channel.send("$vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n$last_maps to see the last 3 maps.\n$lookup [map_name] to search for a map name\n$check [map_name] to check a map's rating")
         else:
@@ -134,14 +214,18 @@ async def on_message(message):
                     except:
                         print("error deleting message")
                     try:
-                        await embed_map(maps[0], message.channel)
+                        shortest_map = maps[0]
+                        for map in maps:
+                            if len(map["map"]) < len(shortest_map["map"]):
+                                shortest_map = map
+                        await embed_map(shortest_map, message.channel)
                     except:
                         print("error embedding map" + maps[0]["map"])
                 else:
                     await message.channel.send('Map "' + map_name + '" not found.')
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
-    elif message.content.startswith('$gf_sync') or message.content.startswith('/gf_sync'):
+    elif message.content.startswith('$gf_sync'):
         await tree.sync(guild=discord.Object(id=533307442189172737))
 
 @client.event
