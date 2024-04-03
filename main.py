@@ -44,7 +44,7 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    if message.content.startswith('$check'): #check score of map 
+    if message.content.startswith('$check') or message.content.startswith('/check'): #check score of map 
         if (len(message.content.split(' ')) < 2):
             await message.channel.send("$check [map_name] to check a map's rating")
         else:
@@ -56,14 +56,14 @@ async def on_message(message):
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
                     try:
-                        await message.channel.send(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]/(maps[0]["vote_count"]* 5 )* 100) + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
+                        await message.channel.send(str(maps[0]["map_name"]) + ' has a rating of ' + str(maps[0]["vote_sum"]//(maps[0]["vote_count"]* 5 )* 100) + ' from ' + str(maps[0]["vote_count"]) + ' votes.')
                     except:
                         print("error sending message")
                 else:
                     await message.channel.send('Map "' + map_name + '" not found.')
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
-    if message.content.startswith('$last_maps'): #send back last three maps played
+    if message.content.startswith('$last_maps') or message.content.startswith('/last_maps'): #send back last three maps played
         # url = "http://192.168.0.209:8000/api/stats/botrating/"
         url = "http://stats.geekfestclan.com/api/stats/botrating/"
         response = requests.post(url, json = {"map": "last_maps", "user": message.author.name, "rating": -2, "key": os.getenv('KEY')})
@@ -78,7 +78,7 @@ async def on_message(message):
         except:
             print("error deleting message")
 
-    elif message.content.startswith('$lookup'): #search for map name
+    elif message.content.startswith('$lookup') or message.content.startswith('/lookup'): #search for map name
         if (len(message.content.split(' ')) < 2):
             await message.channel.send('$lookup [map_name] to search for a map name')
         else:
@@ -98,7 +98,7 @@ async def on_message(message):
             else:
                 await message.channel.send('Map "' + map_name + '" not found.')
 
-    elif message.content.startswith('$vote'): #vote for map
+    elif message.content.startswith('$vote') or message.content.startswith('/vote'): #vote for map
         if (len(message.content.split(' ')) < 2):
             await message.channel.send("$vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n$last_maps to see the last 3 maps.\n$lookup [map_name] to search for a map name\n$check [map_name] to check a map's rating")
         else:
