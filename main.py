@@ -45,7 +45,7 @@ async def embed_map(map_dict, channel): #used to embed and send map info
 @app_commands.describe(map_name="Name of the map being checked")
 async def check(interaction, map_name: str):
     url = "http://stats.geekfestclan.com/api/stats/botrating/"
-    response = await requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -3, "key": os.getenv('KEY')})
+    response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -3, "key": os.getenv('KEY')})
     maps = json.loads(response.text)
     if response.content and response.status_code == 200:
         if len(maps) > 0:
@@ -64,7 +64,7 @@ async def check(interaction, map_name: str):
 )
 async def last_maps(interaction):
     url = "http://stats.geekfestclan.com/api/stats/botrating/"
-    response = await requests.post(url, json = {"map": "last_maps", "user": interaction.user.name, "rating": -2, "key": os.getenv('KEY')})
+    response = requests.post(url, json = {"map": "last_maps", "user": interaction.user.name, "rating": -2, "key": os.getenv('KEY')})
     maps = json.loads(response.text)
     await interaction.response.send_message("Sending last three maps", ephemeral=True)
     for i in range(len(maps)-1,-1,-1):
@@ -81,7 +81,7 @@ async def last_maps(interaction):
 @app_commands.describe(map_name="Name of the map being searched")
 async def lookup(interaction, map_name: str):
     url = "http://stats.geekfestclan.com/api/stats/botrating/"
-    response = await requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
+    response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
     maps = json.loads(response.text)
     if response.content and response.status_code == 200:
         if len(maps) > 0:
@@ -105,7 +105,7 @@ async def vote(interaction, map_name:str='' ):
         await interaction.response.send_message("/vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n/last_maps to see the last 3 maps.\n/lookup [map_name] to search for a map name\n/check [map_name] to check a map's rating")
     else:
         url = "http://stats.geekfestclan.com/api/stats/botrating/"
-        response = await requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
+        response = requests.post(url, json = {"map": map_name, "user": interaction.user.name, "rating": -1, "key": os.getenv('KEY')})
         maps = json.loads(response.text)
         if response.content and response.status_code == 200:
             if len(maps) > 0:
@@ -150,7 +150,7 @@ async def on_message(message):
             map_name = message.content.split(' ')[1]
             # url = os.getenv('IP') + "/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
-            response = await requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -3, "key": os.getenv('KEY')})
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -3, "key": os.getenv('KEY')})
             maps = json.loads(response.text)
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
@@ -165,7 +165,7 @@ async def on_message(message):
     if message.content.startswith('$last_maps'): #send back last three maps played
         # url = os.getenv('IP') + "/api/stats/botrating/"
         url = "http://stats.geekfestclan.com/api/stats/botrating/"
-        response = await requests.post(url, json = {"map": "last_maps", "user": message.author.name, "rating": -2, "key": os.getenv('KEY')})
+        response = requests.post(url, json = {"map": "last_maps", "user": message.author.name, "rating": -2, "key": os.getenv('KEY')})
         maps = json.loads(response.text)
         for i in range(len(maps)-1,-1,-1):
             try:
@@ -184,7 +184,7 @@ async def on_message(message):
             map_name = message.content.split(' ')[1]
             # url = os.getenv('IP') + "/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
-            response = await requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
             maps = json.loads(response.text)
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
@@ -205,7 +205,7 @@ async def on_message(message):
             # url = os.getenv('IP') + "/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
             # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
-            response = await requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
             maps = json.loads(response.text)
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
@@ -283,7 +283,7 @@ async def on_reaction_add(reaction, user):
             # url = "http://stats.geekfestclan.com/api/stats/rating/"
             # url = os.getenv('IP') + "/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
-            response = await requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating, "key": os.getenv('KEY')})
+            response = requests.post(url, json = {"map": map_name, "user": user.name, "rating": rating, "key": os.getenv('KEY')})
             print(user.name + " added " + str(rating) + " to map " + map_name)
             if response.content and response.status_code != 201: 
                 print (response.text)
