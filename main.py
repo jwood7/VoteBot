@@ -129,7 +129,7 @@ async def vote(interaction, map_name:str='' ):
     guild=discord.Object(id=533307442189172737)
 )
 @app_commands.describe(map_name="Name of the map being searched")
-async def workshopid(interaction, map_name: str):
+async def workshopid(interaction, map_name: str=''):
     if (len(map_name) < 1):
         await interaction.response.send_message('/workshopid [map_name] to search the command to switch to a workshop map')
     else:
@@ -143,13 +143,13 @@ async def workshopid(interaction, map_name: str):
                     if (shortest_map["workshop_map_nbr"] == None or len(map["map"]) < len(shortest_map["map"])) and map["workshop_map_nbr"] != None:
                         shortest_map = map
                 if shortest_map["workshop_map_nbr"] != None:
-                    await response.channel.send('**Map:** ' +  shortest_map["map"] + ' **RCON:** host_workshop_map ' + shortest_map["workshop_map_nbr"] + '\n')
+                    await interaction.response.send_message('**Map:** ' +  shortest_map["map"] + ' **RCON:** host_workshop_map ' + shortest_map["workshop_map_nbr"] + '\n')
                 else:
-                    await response.channel.send('Map "' + map_name + '" does not have a map id.')
+                    await interaction.response.send_message('Map "' + map_name + '" does not have a map id.')
             else:
-                await response.channel.send('Map "' + map_name + '" not found.')
+                await interaction.response.send_message('Map "' + map_name + '" not found.')
         else:
-            await response.channel.send('Map "' + map_name + '" not found.')
+            await interaction.response.send_message('Map "' + map_name + '" not found.')
 
 @tree.command(
     name="gf_sync",
