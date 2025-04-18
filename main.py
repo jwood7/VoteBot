@@ -21,7 +21,7 @@ async def embed_map(map_dict, channel): #used to embed and send map info
     embed = discord.Embed(title = 'Vote on ' + map_data["map"], 
                          description = 'Vote for the map on a scale of 1️⃣ - 5️⃣!', 
                          color = 0x00ff00,
-                         url = 'https://newgeekfeststats.duckdns.org/stats/Map2?mid=' + str(map_data["idmap"]))
+                         url = 'https://newgeekfeststats.duckdns.org/stats/maps/' + str(map_data["idmap"]) + '/')
     
     if (map_data["description"]):
         embed.add_field(name = 'Map description', value = map_data["description"], inline = False)
@@ -116,7 +116,8 @@ async def vote(interaction, map_name:str='' ):
     if map_name == '':
         await interaction.response.send_message("/vote [map_name], then vote for the map on a scale of 1️⃣ - 5️⃣!\n/last_maps to see the last 3 maps.\n/lookup [map_name] to search for a map name\n/check [map_name] to check a map's rating")
     else:
-        url = f"https://newgeekfeststats.duckdns.org/api/maps/maps/?map={map_name}"
+        url = f"https://newgeekfeststats.duckdns.org/api/maps/maps/?map={map_name}&name_exact_match=true"
+        # url = f"https://newgeekfeststats.duckdns.org/api/maps/maps/?map={map_name}"
         response = requests.get(url)
         
         if response.status_code == 200:
@@ -250,7 +251,8 @@ async def on_message(message):
             # url = os.getenv('IP') + "/api/stats/botrating/"
             url = "http://stats.geekfestclan.com/api/stats/botrating/"
             # send vote of -1 to api to check if map is valid (200 response or content of map is valid)
-            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
+            response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY'), "name_exact_match": True})
+            # response = requests.post(url, json = {"map": map_name, "user": message.author.name, "rating": -1, "key": os.getenv('KEY')})
             maps = json.loads(response.text)
             if response.content and response.status_code == 200:
                 if len(maps) > 0:
